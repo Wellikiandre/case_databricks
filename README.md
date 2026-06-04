@@ -28,20 +28,20 @@ $$\text{Estrutura de Pastas: } \texttt{sistema} / \text{fonte (tabela ou endpoin
 
 A estrutura abaixo representa o padrão arquitetural de pastas adotado em grandes *players* de mercado nos três principais provedores de nuvem (AWS, GCP e Azure). O design é totalmente desacoplado da nuvem física, permitindo portabilidade e adaptabilidade a diferentes domínios de negócio:
 
-![Diagrama de Arquitetura da Solução](image.png)
+![Diagrama de Arquitetura da Solução](arquitetura.png)
 
-| Pasta | Componente | Descrição Técnica & Objetivo de Engenharia |
-| :--- | :--- | :--- |
-| **`0_Config`** | Configurações & Inicialização | Contém o notebook `init` que centraliza o carregamento de dependências, bibliotecas (libraries), funções utilitárias compartilhadas e parametrização dinâmica de ambientes (DEV, HML, PRD). É o cérebro e ponto único de controle do ecossistema. |
-| **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato inicial com as origens brutas. Configurado para ler tópicos (topics) de mensageria, eventos de captura de mudança de dados (Change Data Capture - CDC), extrações de API ou cargas em lote (batch). |
-| **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados de origem em tabelas delta (Delta Tables). Preserva o histórico bruto (append-only) e adiciona metadados de auditoria (ex: data e hora de inserção - timestamp). |
-| **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos (casting), normalização e padronização de nomenclatura de colunas (schema alignment), deduplicação e enriquecimento de dados. |
-| **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final otimizada para o consumo de dashboards de BI. Suporta modelagem dimensional (Tabelas Fato e Dimensão no padrão Star Schema de Ralph Kimball), modelagem de Bill Inmon, ou o uso de tabelas consolidadas (One Big Table - OBT). |
-| **`5_Workflow`** | Orquestração & Pipelines | Armazena notebooks estruturados para a automação de fluxos ponta a ponta e interfaces com orquestradores externos de pipeline. |
-| **`6_Webhook`** | Notificações & Alertas | Implementação de webhooks para o envio proativo de status de saúde das cargas e alertas de falhas em tempo real (real-time notification) para plataformas de comunicação como Microsoft Teams ou Slack. |
-| **`7_Vacuum_Optimize`** | Manutenção & Performance | Automação periódica de processos de otimização de tabelas Delta (`OPTIMIZE` e `VACUUM`), reduzindo fragmentação de arquivos e limpando logs transacionais antigos para manter a eficiência de leitura (query performance). |
-| **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts especializados na análise de uso de clusters, eficiência de consultas e redução de desperdício financeiro na nuvem. |
-| **`9_Governanca`** | Governança & Segurança | Cadernos dedicados ao mascaramento de dados sensíveis (data masking), controle de integridade e aderência às regras de conformidade (LGPD/GDPR). |
+ Pasta | Componente | Descrição Técnica & Objetivo de Engenharia |
+ :--- | :--- | :--- |
+ **`0_Config`** | Configurações & Inicialização | Contém o notebook `init` que centraliza o carregamento de dependências, bibliotecas (libraries), funções utilitárias compartilhadas e parametrização dinâmica de ambientes (DEV, HML, PRD). É o cérebro e ponto único de controle do ecossistema. |
+ **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato inicial com as origens brutas. Configurado para ler tópicos (topics) de mensageria, eventos de captura de mudança de dados (Change Data Capture - CDC), extrações de API ou cargas em lote (batch). |
+ **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados de origem em tabelas delta (Delta Tables). Preserva o histórico bruto (append-only) e adiciona metadados de auditoria (ex: data e hora de inserção - timestamp). |
+ **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos (casting), normalização e padronização de nomenclatura de colunas (schema alignment), deduplicação e enriquecimento de dados. |
+ **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final otimizada para o consumo de dashboards de BI. Suporta modelagem dimensional (Tabelas Fato e Dimensão no padrão Star Schema de Ralph Kimball), modelagem de Bill Inmon, ou o uso de tabelas consolidadas (One Big Table - OBT). |
+ **`5_Workflow`** | Orquestração & Pipelines | Armazena notebooks estruturados para a automação de fluxos ponta a ponta e interfaces com orquestradores externos de pipeline. |
+ **`6_Webhook`** | Notificações & Alertas | Implementação de webhooks para o envio proativo de status de saúde das cargas e alertas de falhas em tempo real (real-time notification) para plataformas de comunicação como Microsoft Teams ou Slack. |
+ **`7_Vacuum_Optimize`** | Manutenção & Performance | Automação periódica de processos de otimização de tabelas Delta (`OPTIMIZE` e `VACUUM`), reduzindo fragmentação de arquivos e limpando logs transacionais antigos para manter a eficiência de leitura (query performance). |
+ **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts especializados na análise de uso de clusters, eficiência de consultas e redução de desperdício financeiro na nuvem. |
+ **`9_Governanca`** | Governança & Segurança | Cadernos dedicados ao mascaramento de dados sensíveis (data masking), controle de integridade e aderência às regras de conformidade (LGPD/GDPR). |
 
 ---
 
