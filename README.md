@@ -20,9 +20,9 @@ Este documento detalha o guia de arquitetura de referência (Reference Architect
 ### Estrutura de Pastas na Zona de Ingestão (Landing Zone)
 Em ambientes de produção de alta escala, a organização física e lógica na zona de pouso (Landing Zone) deve ser padronizada por fonte e partição temporal, otimizando o paralelismo de leitura do Spark e facilitando a governança:
 
-+```text
-+sistema / fonte (tabela ou endpoint) / ano / mês / dia / formato_arquivo
-+```
+```text
+sistema / fonte (tabela ou endpoint) / ano / mês / dia / {nome_endpoint}formato_arquivo
+```
 ---
 
 ## 2. Estrutura de Pastas do Projeto (Workspace Folder Structure)
