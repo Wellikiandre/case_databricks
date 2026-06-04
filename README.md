@@ -22,15 +22,15 @@ Em ambientes de produção de alta escala, a organização física e lógica na 
 
 ```text
 sistema / fonte (tabela ou endpoint) / data / ano / mês / dia / {nome_endpoint} formato_arquivo{.parquet, .csv , .json ...} -> Local dos arquivos brutos
-sistema / fonte (tabela ou endpoint) / checkpoint / formato_arquivo{.parquet, .csv , .json ...} -> Local do ponteiro incremental em caso de ferramenta de controle de ingestão como ADF ou outros sistemas
+sistema / fonte (tabela ou endpoint) / _checkpoint / formato_arquivo{.parquet, .csv , .json ...} -> Local do ponteiro incremental em caso de ferramenta de controle de ingestão como ADF ou outros sistemas
 ```
 ---
 
 ### Estrutura de Pastas nas demais zonas (Bronze , Silver e Gold)
 ```text
 sistema / fonte (tabela ou endpoint) / data / -> Local dos dados delta
-sistema / fonte (tabela ou endpoint) / schema_location / -> Local dos metadados
-sistema / fonte (tabela ou endpoint) / checkpoint / -> Local do checkpoint do streaming
+sistema / fonte (tabela ou endpoint) / _schemalocal / -> Local dos metadados
+sistema / fonte (tabela ou endpoint) / _checkpoint / -> Local do checkpoint do streaming
 ```
 
 ## 2. Estrutura de Pastas do Projeto (Workspace Folder Structure)
