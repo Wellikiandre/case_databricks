@@ -21,13 +21,22 @@ Este documento detalha o guia de arquitetura de referência (Reference Architect
 Em ambientes de produção de alta escala, a organização física e lógica na zona de pouso (Landing Zone) deve ser padronizada por fonte e partição temporal, otimizando o paralelismo de leitura do Spark e facilitando a governança:
 
 ```text
-sistema / fonte (tabela ou endpoint) / ano / mês / dia / {nome_endpoint}formato_arquivo
+sistema / fonte (tabela ou endpoint) / data / ano / mês / dia / {nome_endpoint} formato_arquivo{.parquet, .csv , .json ...} -> Local dos arquivos brutos
+sistema / fonte (tabela ou endpoint) / checkpoint / formato_arquivo{.parquet, .csv , .json ...} -> Local do ponteiro incremental em caso de ferramenta de controle de ingestão como ADF ou outros sistemas
 ```
 ---
+
+### Estrutura de Pastas nas demais zonas (Bronze , Silver e Gold)
+```text
+sistema / fonte (tabela ou endpoint) / data / -> Local dos dados delta
+sistema / fonte (tabela ou endpoint) / schema_location / -> Local dos metadados
+sistema / fonte (tabela ou endpoint) / checkpoint / -> Local do checkpoint do streaming
+```
 
 ## 2. Estrutura de Pastas do Projeto (Workspace Folder Structure)
 
 A estrutura abaixo representa o padrão arquitetural de pastas adotado em grandes *players* de mercado nos três principais provedores de nuvem (AWS, GCP e Azure). O design é totalmente desacoplado da nuvem física, permitindo portabilidade e adaptabilidade a diferentes domínios de negócio:
+
 
 ![Diagrama de Arquitetura da Solução](arquitetura.png)
 
