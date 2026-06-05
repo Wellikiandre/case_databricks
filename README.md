@@ -1,6 +1,10 @@
 # Plataforma Corporativa de Dados e Modelagem Dimensional no Databricks
 ## Guia de Arquitetura de Referência e Especificação do Case Técnico
 
+[![Databricks](https://img.shields.io/badge/Databricks-Community_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
+[![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.5-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
+[![Delta Lake](https://img.shields.io/badge/Delta_Lake-Medallion-00BFFF?logo=delta&logoColor=white)](https://delta.io/)
+
 Este documento apresenta a especificação técnica e de arquitetura do projeto de engenharia de dados (data engineering) desenvolvido para o Databricks. A solução foi projetada sob os princípios de alta escalabilidade (scalability), governança centralizada (data governance) e otimização de custos na nuvem (cloud cost management - FinOps).
 
 ---
@@ -16,8 +20,18 @@ Este documento apresenta a especificação técnica e de arquitetura do projeto 
 
 ## Menu de Acesso Rápido (Quick Access Links)
 
-*   [Documentação Técnica Detalhada](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md): Regras de qualidade de dados (data quality rules) e dicionários físicos de tabelas.
-*   [Resumo Executivo de Negócio](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md): Visão estratégica e análise de retorno financeiro de arquitetura.
+Para navegar diretamente para os documentos detalhados, clique nos botões abaixo:
+
+<p align="left">
+  <a href="file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md">
+    <img src="https://img.shields.io/badge/Documentação_Técnica-Acessar_Documento-blue?style=for-the-badge&logo=markdown&logoColor=white" alt="Documentação Técnica">
+  </a>
+  &nbsp;&nbsp;
+  <a href="file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md">
+    <img src="https://img.shields.io/badge/Resumo_Executivo-Acessar_Resumo-green?style=for-the-badge&logo=markdown&logoColor=white" alt="Resumo Executivo">
+  </a>
+</p>
+
 *   [Especificação de Orquestração YAML](file:///home/wellikiandre/academy/dir/case_databricks/src/5_Workflow/carga_case.yaml): Configuração do Databricks Workflow para implantação automática.
 
 ---
