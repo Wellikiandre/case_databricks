@@ -288,24 +288,7 @@ Os notebooks de processamento e configurações criados estão organizados nas r
 
 ---
 
-## 6. Instruções de Implantação e Execução (Deployment Guide)
-
-Como os códigos foram desenvolvidos e testados no padrão do Databricks Repos integrado aos volumes do Unity Catalog:
-
-1.  Faça o commit e envie as alterações locais para a sua branch remota do GitHub:
-    ```bash
-    git push origin main
-    ```
-2.  No Databricks Workspace, acesse o módulo **Repos** (ou **Git Folders**).
-3.  Selecione o repositório `case_databricks` e realize o **Pull** para sincronizar as pastas de notebooks em seu workspace.
-4.  Certifique-se de que os volumes declarados no notebook `2-Variable.ipynb` existam no Unity Catalog do seu cluster.
-5.  Execute o orquestrador geral `/src/5_Workflow/carga_case.ipynb` ou os orquestradores específicos de cada camada:
-    *   `/src/3_Silver/000-run_job_case_silver.ipynb`
-    *   `/src/4_Gold/000-run_job_case_gold.ipynb`
-
----
-
-## 7. Portfólio de Casos Reais de Sucesso (FinOps & Performance Cases)
+## 6. Portfólio de Casos Reais de Sucesso (FinOps & Performance Cases)
 
 Abaixo estão detalhados os resultados práticos obtidos com a aplicação desta mesma arquitetura e de metodologias avançadas de FinOps no ecossistema de dados, servindo de base de conhecimento para o ambiente corporativo:
 
