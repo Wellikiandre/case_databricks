@@ -105,15 +105,80 @@ classDiagram
     fact_ocorrencias --> dim_tempo : sk_tempo_ocorrencia
 ```
 
-### Especificação Conceitual das Entidades Gold
+### Especificação Conceitual e Dicionário de Dados Gold (Gold Dimensional Modeling)
 
-*   **dim_clientes**: Consolida o cadastro unificado de clientes. Associa as informações geográficas (UF) vindas do sistema legado para gerar a região de vendas, aplicando chaves substitutas (surrogate keys) hash SHA-256 no identificador numérico de origem.
-*   **dim_produtos**: Estrutura a hierarquia comercial de produtos (categoria, subcategoria e família), convertendo preços para decimal e tratando registros ausentes de categoria como "Outros".
-*   **dim_vendedores**: Integra o cadastro de vendedores e associa seus respectivos canais de vendas (comercial canais).
-*   **dim_tempo**: Tabela calendário dinâmica (2023 a 2026) contendo atributos de agrupamento temporal (ano, mês, dia, trimestre, dia da semana).
-*   **fact_pedidos_itens**: Contém as transações de vendas no nível mais detalhado (item do pedido). Calcula a receita bruta e a receita líquida (zerando o valor de itens cancelados) para otimizar relatórios financeiros sem necessidade de processamento adicional no dashboard.
-*   **fact_entregas**: Monitora o desempenho da logística de transporte, calculando o tempo de transporte (transit time) em dias e gerando o indicador binário `flag_atrasado` com base no status da remessa.
-*   **fact_ocorrencias**: Registra os incidentes de pós-venda, associando os tickets de atendimento por severidade e status diretamente aos clientes e pedidos.
+Para facilitar a exploração analítica por ferramentas de Business Intelligence (BI) e pelo Databricks Genie AI, a camada Gold foi modelada em detalhes com as seguintes tabelas de dimensão (dimension tables) e tabelas fato (fact tables):
+
+#### Tabelas de Dimensão (Dimension Tables)
+
+##### `dim_clientes`
+*   **sk_cliente (Primary Key)**: Chave substituta (surrogate key) gerada via hash SHA-256 no ID do cliente para isolamento do ID transacional.
+*   **id_cliente**: ID de negócio original do cliente.
+*   **nome_cliente**: Nome completo.
+*   **email_cliente**: E-mail tratado.
+*   **documento_cliente**: CPF/CNPJ higienizado.
+*   **tipo_documento_cliente**: Classificação do documento.
+*   **uf_cliente**: Unidade Federativa.
+*   **regiao_cliente**: Região comercial unificada a partir dos dados geográficos do legado.
+*   **data_cadastro**: Data de ingresso do cliente.
+
+##### `dim_produtos`
+*   **sk_produto (Primary Key)**: Hash SHA-256 sobre o ID do produto.
+*   **id_produto**: ID de negócio do produto.
+*   **nome_produto**: Descrição do produto.
+*   **categoria_produto**: Categoria de alto nível.
+*   **subcategoria_produto**: Subcategoria.
+*   **status_produto**: Situação atual do produto.
+*   **preco_tabela**: Preço de tabela sugerido.
+*   **moeda**: Código de moeda.
+
+##### `dim_vendedores`
+*   **sk_vendedor (Primary Key)**: Hash SHA-256 sobre o ID do vendedor.
+*   **id_vendedor**: ID numérico.
+*   **nome_vendedor**: Nome do vendedor.
+*   **nome_canal**: Nome do canal comercial ao qual o vendedor pertence.
+*   **email_vendedor**: E-mail do vendedor.
+
+##### `dim_tempo`
+*   **sk_tempo (Primary Key)**: Chave inteira (surrogate key) no formato `yyyyMMdd`.
+*   **data**: Tipo Date.
+*   **ano**, **mes**, **dia**, **trimestre**, **dia_semana**, **nome_mes**, **nome_dia_semana**: Atributos temporais ricos.
+
+#### Tabelas Fato (Fact Tables)
+
+##### `fact_pedidos_itens`
+Contém as transações de vendas no nível mais granular (item por pedido).
+*   **id_fato_item_pedido (Primary Key)**: Hash SHA-256 composto pela junção de pedido e produto.
+*   **id_pedido**: Número do pedido.
+*   **sk_cliente**, **sk_produto**, **sk_vendedor**, **sk_tempo**: Chaves estrangeiras associadas às tabelas de dimensão.
+*   **quantidade**: Volume físico vendido.
+*   **preco_unitario**: Preço praticado na venda.
+*   **valor_bruto**: Receita bruta (`quantidade * preco_unitario`).
+*   **valor_liquido**: Receita líquida ajustada (valor zerado no caso de pedidos cancelados, servindo como métrica financeira confiável).
+*   **status_pedido_evento**: Status de finalização do pedido.
+
+##### `fact_entregas`
+Métricas de entrega da cadeia de suprimentos (supply chain).
+*   **id_fato_entrega (Primary Key)**: ID único da entrega.
+*   **id_pedido**: ID do pedido de origem.
+*   **sk_cliente**: Chave do cliente destinatário.
+*   **sk_tempo_envio**, **sk_tempo_entrega**: Conexões com a dimensão tempo.
+*   **status_entrega**: Status do tráfego (ex: Entregue, Cancelado, Atrasado).
+*   **transportadora**: Parceiro logístico.
+*   **modalidade_transporte**: Modal.
+*   **custo_frete**: Custo de envio logístico.
+*   **dias_transporte**: Tempo decorrido em trânsito.
+*   **flag_atrasado**: Indicador binário (`1` para atrasado, `0` para no prazo).
+
+##### `fact_ocorrencias`
+Monitoramento de pós-venda e satisfação do cliente.
+*   **id_fato_ticket (Primary Key)**: ID do ticket.
+*   **id_pedido**: Pedido associado ao chamado.
+*   **sk_cliente**: Cliente que abriu a ocorrência.
+*   **sk_tempo_ocorrencia**: Data de abertura do incidente.
+*   **tipo_evento**: Categoria da ocorrência.
+*   **severidade**: Impacto.
+*   **status_ticket**: Situação de resolução.
 
 ---
 
@@ -130,11 +195,26 @@ O processamento segue a arquitetura de medalhão (Medallion Architecture) dividi
 
     ![Tabelas da Camada Bronze no Unity Catalog](bronze_catalog.png)
 
-### Bronze para Silver (Cleaning & Quality Control)
-As transformações aplicadas garantem a qualidade e a padronização dos dados antes de sua agregação analítica:
-*   **Limpeza Cadastral**: Remoção de pontos, traços e barras de documentos de identificação (CPF/CNPJ) via expressões regulares (regex) e conversão de e-mails para caracteres minúsculos.
-*   **Casting de Tipos de Dados**: Conversão de strings de data/hora para TimestampType e DateType, e campos monetários/preços para DecimalType(10,2).
-*   **Deduplicação por Janela Temporal (Deduplication)**: Utilização da janela analítica do Spark (`Window.partitionBy().orderBy()`) para reter apenas o último estado de registros mutáveis (como status de pedidos, produtos atualizados e tickets de atendimento).
+### Bronze para Silver (Data Quality & Cleaning)
+As transformações aplicadas garantem a qualidade e a padronização dos dados antes de sua agregação analítica. Para cada entidade, aplicou-se um pipeline de limpeza (cleaning pipeline) específico:
+
+*   **Clientes CRM (`crm_clientes`)**:
+    *   Limpeza do documento (CPF/CNPJ) através de expressões regulares (regex) para remover caracteres de formatação (como pontos e traços).
+    *   Padronização do campo e-mail em letras minúsculas (lowercase).
+    *   Tratamento de duplicidade através do particionamento por `id_cliente` no nível do banco de dados (database deduplication).
+*   **Produtos (`cadastro_produtos`)**:
+    *   Conversão de tipo (casting) de `list_price` para formato numérico de precisão fixa (`DecimalType(10, 2)`).
+    *   Tratamento de nulos em campos de categorias aplicando valor padrão "Outros" para evitar distorções na segmentação de relatórios.
+    *   Deduplicação baseada no produto mais recentemente atualizado com a janela do Spark (`Window.partitionBy("product_id").orderBy(col("updated_at").desc())`).
+*   **Canais e Vendedores**:
+    *   Normalização de chaves primárias e chaves estrangeiras (foreign keys) para tipos de dados inteiros comuns.
+    *   Ajuste de strings (remover espaços sobressalentes).
+*   **Logística de Entregas (`logistica_entregas`)**:
+    *   Conversão de tipo (casting) das strings de tempo para tipo Timestamp.
+    *   Tratamento de nulos no status do rastreamento preenchendo com "PENDENTE".
+*   **Atendimento Ocorrências (`atendimento_ocorrencias`)**:
+    *   Conversão de tipo (casting) de datas de criação dos tickets.
+    *   Filtro e deduplicação de ocorrências concorrentes por `ticket_id`, mantendo a última atualização registrada.
 
 ---
 
