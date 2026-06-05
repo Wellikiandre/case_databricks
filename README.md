@@ -108,6 +108,9 @@ classDiagram
 O processamento segue a arquitetura de medalhão (Medallion Architecture) dividida em:
 
 ### Landing para Bronze (Raw Replication)
+*   **Estrutura de Landing Zone padronizada**: A zona de pouso (Landing Zone) foi implementada utilizando volumes (Volumes) do Unity Catalog no Databricks, sob o caminho `/Volumes/case_databricks/landing/volume_landing/case/`, onde os dados brutos de cada entidade de negócio são depositados em suas respectivas pastas.
+
+    ![Estrutura do Volume da Camada Landing](volume_landing.png)
 *   **Ingestão via Auto Loader**: Utilização do Auto Loader do Databricks com `cloudFiles` para ler em tempo real (streaming) ou lotes frequentes arquivos CSV, JSON e texto da landing zone.
 *   **Replicação Exata**: Armazenamento em tabelas Delta (Delta Tables) de forma idêntica à origem, acrescentando metadados de auditoria técnica como `rastreamento_source` (caminho físico do arquivo de entrada) e `ingestion_date_brasilia` (carimbo de data e hora ajustado para o fuso local).
 
