@@ -11,7 +11,9 @@ A solução foi desenvolvida baseando-se na arquitetura de medalhão (Medallion 
 1.  **Camada Landing**: Ponto de contato onde os arquivos brutos em lote (batch) ou fluxo contínuo (streaming) residem. A zona de pouso (Landing Zone) foi estruturada de forma padronizada utilizando volumes (Volumes) do Unity Catalog no Databricks, sob o caminho `/Volumes/case_databricks/landing/volume_landing/case/`, organizando as origens de dados em subdiretórios específicos para cada entidade de negócio.
 
     ![Estrutura da Camada Landing](../volume_landing.png)
-2.  **Camada Bronze**: Tabela delta (Delta Table) que armazena a réplica exata das origens de dados (append-only) com o acréscimo de metadados de auditoria (`rastreamento_source` e `ingestion_date_brasilia`).
+2.  **Camada Bronze**: Tabela delta (Delta Table) que armazena a réplica exata das origens de dados (append-only) com o acréscimo de metadados de auditoria (`rastreamento_source` e `ingestion_date_brasilia`). As tabelas foram catalogadas no Unity Catalog sob o catálogo `case_databricks` e esquema `bronze`.
+
+    ![Tabelas da Camada Bronze no Unity Catalog](../bronze_catalog.png)
 3.  **Camada Silver**: Tabelas tratadas, limpas e deduplicadas, com esquemas alinhados (schema alignment) e tipos de dados convertidos (casting) adequadamente.
 4.  **Camada Gold**: Modelo de dados analítico estruturado sob o conceito de esquema estrela (star schema), composto de tabelas de dimensão (dimension tables) e tabelas fato (fact tables).
 

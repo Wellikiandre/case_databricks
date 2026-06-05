@@ -1,8 +1,8 @@
 # Plataforma Corporativa de Dados e Modelagem Dimensional no Databricks
 ## Guia de Arquitetura de Referência e Especificação do Case Técnico
 
-[![Databricks](https://img.shields.io/badge/Databricks-Community_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
-[![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.5-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
+[![Databricks](https://img.shields.io/badge/Databricks-Free_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
+[![Apache Spark](https://img.shields.io/badge/Apache_Spark-4.0-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
 [![Delta Lake](https://img.shields.io/badge/Delta_Lake-Medallion-00BFFF?logo=delta&logoColor=white)](https://delta.io/)
 
 Este documento apresenta a especificação técnica e de arquitetura do projeto de engenharia de dados (data engineering) desenvolvido para o Databricks. A solução foi projetada sob os princípios de alta escalabilidade (scalability), governança centralizada (data governance) e otimização de custos na nuvem (cloud cost management - FinOps).
@@ -126,7 +126,9 @@ O processamento segue a arquitetura de medalhão (Medallion Architecture) dividi
 
     ![Estrutura do Volume da Camada Landing](volume_landing.png)
 *   **Ingestão via Auto Loader**: Utilização do Auto Loader do Databricks com `cloudFiles` para ler em tempo real (streaming) ou lotes frequentes arquivos CSV, JSON e texto da landing zone.
-*   **Replicação Exata**: Armazenamento em tabelas Delta (Delta Tables) de forma idêntica à origem, acrescentando metadados de auditoria técnica como `rastreamento_source` (caminho físico do arquivo de entrada) e `ingestion_date_brasilia` (carimbo de data e hora ajustado para o fuso local).
+*   **Replicação Exata**: Armazenamento em tabelas Delta (Delta Tables) de forma idêntica à origem, acrescentando metadados de auditoria técnica como `rastreamento_source` (caminho físico do arquivo de entrada) e `ingestion_date_brasilia` (carimbo de data e hora ajustado para o fuso local). As tabelas são criadas de forma particionada sob o esquema `bronze` no Unity Catalog.
+
+    ![Tabelas da Camada Bronze no Unity Catalog](bronze_catalog.png)
 
 ### Bronze para Silver (Cleaning & Quality Control)
 As transformações aplicadas garantem a qualidade e a padronização dos dados antes de sua agregação analítica:
