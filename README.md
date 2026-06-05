@@ -1,167 +1,32 @@
-# 🚀 Plataforma Corporativa de Dados & Modelagem Dimensional no Databricks
-## Arquitetura de Referência Moderna (Databricks Reference Architecture)
+# Plataforma Corporativa de Dados e Modelagem Dimensional no Databricks
+## Guia de Arquitetura de Referência e Especificação do Case Técnico
 
-[![Databricks](https://img.shields.io/badge/Databricks-Community_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
-[![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.5-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
-[![Delta Lake](https://img.shields.io/badge/Delta_Lake-Medallion-00BFFF?logo=delta&logoColor=white)](https://delta.io/)
-
----
-
-### 💡 Venda Técnica da Solução (Solution Pitch)
-
-Esta plataforma transforma fontes brutas e heterogêneas de dados em um ecossistema analítico integrado, governado e **pronto para IA (AI-Ready)**. 
-
-Ao adotar práticas modernas de **FinOps** (como orquestração assíncrona, Liquid Clustering e rotinas Delta automatizadas), reduzimos os custos de processamento do Data Factory na nuvem entre **27% e 90%**, eliminando problemas de arquivos pequenos (small files) e garantindo uma base de altíssimo desempenho para o **Databricks Genie AI** e dashboards analíticos.
-
----
-
-### 📖 Menu de Navegação Rápida (Quick Navigation)
-
-Para facilitar a avaliação da solução, acesse diretamente os documentos de suporte ao caso técnico:
-
-*   📂 **[Resumo Executivo (Executive Summary)](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md)**: Visão gerencial, modelo de dados conceitual (Mermaid) e ganhos de negócio da plataforma.
-*   🛠 **[Documentação Técnica (Technical Documentation)](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md)**: Detalhes sobre cada pipeline de limpeza, dicionário de dados da Gold, chaves substitutas (surrogate keys) e performance.
-*   ⚙️ **[Orquestração do Pipeline (Databricks Workflow YAML)](file:///home/wellikiandre/academy/dir/case_databricks/src/5_Workflow/carga_case.yaml)**: Especificação completa em formato YAML para deploy automático via bundles.
+Este documento apresenta a especificação técnica e de arquitetura do projeto de engenharia de dados (data engineering) desenvolvido para o Databricks. A solução foi projetada sob os princípios de alta escalabilidade (scalability), governança centralizada (data governance) e otimização de custos na nuvem (cloud cost management - FinOps).
 
 ---
 
 > [!IMPORTANT]
-> **Premissa de Entrega & Posicionamento Profissional**
+> **Premissa de Entrega e Posicionamento Profissional**
 > 
-> A solução desenvolvida para este teste técnico está implementada integralmente sob a arquitetura de referência detalhada a seguir. 
+> A solução desenvolvida para este teste técnico está implementada integralmente sob a arquitetura de referência detalhada a seguir.
 > 
 > Mesmo ciente de que o foco central deste case é a avaliação de minhas habilidades técnicas (skills evaluation), assumi como premissa pessoal a entrega de **valor incremental (incremental value)**. Por este motivo, meu objetivo aqui não foi apenas documentar estritamente as regras básicas solicitadas pelo enunciado, mas sim construir e documentar o projeto sob o mesmo padrão de excelência de mercado que venho aplicando, liderando e ensinando em grandes operações de dados há anos.
 
-Este documento detalha o guia de arquitetura de referência (Reference Architecture Guide) projetado para o ambiente corporativo do **Databricks**. Esta arquitetura foi consolidada sob os princípios de alta escalabilidade (scalability), governança estrita de dados (data governance) e otimização financeira (FinOps), sendo testada com sucesso em grandes corporações do mercado financeiro e de tecnologia.
+---
+
+## Menu de Acesso Rápido (Quick Access Links)
+
+*   [Documentação Técnica Detalhada](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md): Regras de qualidade de dados (data quality rules) e dicionários físicos de tabelas.
+*   [Resumo Executivo de Negócio](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md): Visão estratégica e análise de retorno financeiro de arquitetura.
+*   [Especificação de Orquestração YAML](file:///home/wellikiandre/academy/dir/case_databricks/src/5_Workflow/carga_case.yaml): Configuração do Databricks Workflow para implantação automática.
 
 ---
 
+## 1. Arquitetura do Modelo Dimensional - Camada Gold (Gold Dimensional Model)
 
-## 1. Diretrizes Iniciais de Acesso e Ingestão
+A camada Gold (Curated/BI) foi estruturada sob o conceito de **esquema estrela (star schema)** para facilitar a exploração analítica por ferramentas de Business Intelligence (BI) e permitir a integração natural de consultas em linguagem natural (natural language queries) através do **Databricks AI/BI Genie**.
 
-### Controle de Acesso Baseado em Perfis (Access Control & Roles)
-*   **Grupos de Usuários (User Groups):** Implementação de políticas de controle de acesso baseado em funções (Role-Based Access Control - RBAC). Os usuários são segregados em grupos com privilégios específicos: *Analistas de BI*, *Engenheiros de Dados*, *Analistas de Governança* e *Membros do Centro de Excelência (Center of Excellence - CoE)*.
-*   **Segregação por Unidade de Negócio (Business Unit - BU):** Isolamento de dados entre diferentes BUs para garantir privacidade, conformidade regulatória e simplificação do rateio de custos de nuvem.
-
-### Estrutura de Pastas na Zona de Ingestão (Landing Zone)
-Em ambientes de produção de alta escala, a organização física e lógica na zona de pouso (Landing Zone) deve ser padronizada por fonte e partição temporal, otimizando o paralelismo de leitura do Spark e facilitando a governança:
-Obs: Para esse texte técnico coloquei os arquivos no volume seguindo a hierarquia case / {fonte} / {arquivo}, onde todos os fluxos foram construindo pensando no formato batch e/ou streaming.
-```text
-sistema / fonte (tabela ou endpoint) / data / ano / mês / dia / {nome_endpoint} formato_arquivo{.parquet, .csv , .json ...} -> Local dos arquivos brutos
-sistema / fonte (tabela ou endpoint) / _checkpoint / formato_arquivo{.parquet, .csv , .json ...} -> Local do ponteiro incremental em caso de ferramenta de controle de ingestão como ADF ou outros sistemas
-```
----
-
-### Estrutura de Pastas nas demais zonas (Bronze , Silver e Gold)
-```text
-sistema / fonte (tabela ou endpoint) / data / -> Local dos dados delta
-sistema / fonte (tabela ou endpoint) / _schemalocal / -> Local dos metadados
-sistema / fonte (tabela ou endpoint) / _checkpoint / -> Local do checkpoint do streaming
-```
-
-## 2. Estrutura de Pastas do Projeto (Workspace Folder Structure)
-
-A estrutura abaixo representa o padrão arquitetural de pastas adotado em grandes *players* de mercado nos três principais provedores de nuvem (AWS, GCP e Azure). O design é totalmente desacoplado da nuvem física, permitindo portabilidade e adaptabilidade a diferentes domínios de negócio:
-
-
-![Diagrama de Arquitetura da Solução](arquitetura.png)
-
- Pasta | Componente | Descrição Técnica & Objetivo de Engenharia |
- :--- | :--- | :--- |
- **`0_Config`** | Configurações & Inicialização | Contém o notebook `init` que centraliza o carregamento de dependências, bibliotecas (libraries), funções utilitárias compartilhadas e parametrização dinâmica de ambientes (DEV, HML, PRD). É o cérebro e ponto único de controle do ecossistema. |
- **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato inicial com as origens brutas. Configurado para ler tópicos (topics) de mensageria, eventos de captura de mudança de dados (Change Data Capture - CDC), extrações de API ou cargas em lote (batch). |
- **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados de origem em tabelas delta (Delta Tables). Preserva o histórico bruto (append-only) e adiciona metadados de auditoria (ex: data e hora de inserção - timestamp). |
- **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos (casting), normalização e padronização de nomenclatura de colunas (schema alignment), deduplicação e enriquecimento de dados. |
- **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final otimizada para o consumo de dashboards de BI. Suporta modelagem dimensional (Tabelas Fato e Dimensão no padrão Star Schema de Ralph Kimball), modelagem de Bill Inmon, ou o uso de tabelas consolidadas (One Big Table - OBT). |
- **`5_Workflow`** | Orquestração & Pipelines | Armazena notebooks estruturados para a automação de fluxos ponta a ponta e interfaces com orquestradores externos de pipeline. |
- **`6_Webhook`** | Notificações & Alertas | Implementação de webhooks para o envio proativo de status de saúde das cargas e alertas de falhas em tempo real (real-time notification) para plataformas de comunicação como Microsoft Teams ou Slack. |
- **`7_Vacuum_Optimize`** | Manutenção & Performance | Automação periódica de processos de otimização de tabelas Delta (`OPTIMIZE` e `VACUUM`), reduzindo fragmentação de arquivos e limpando logs transacionais antigos para manter a eficiência de leitura (query performance). |
- **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts especializados na análise de uso de clusters, eficiência de consultas e redução de desperdício financeiro na nuvem. |
- **`9_Governanca`** | Governança & Segurança | Cadernos dedicados ao mascaramento de dados sensíveis (data masking), controle de integridade e aderência às regras de conformidade (LGPD/GDPR). |
-
-![Arquitetura de Pasta](src.png)
----
-
-## 3. Governança Moderna & Prontidão para IA (Unity Catalog & Genie AI)
-
-### Repositório de Metadados Centralizado (Centralized Metadata Repository)
-Conforme as melhores práticas de governança moderna, o local ideal e definitivo da documentação técnica de dados (como tipos de dados, descrições de colunas e dicionários) é **dentro do Unity Catalog** do Databricks, garantindo governança centralizada e rastreabilidade através de linhagem de dados (Data Lineage). 
-O arquivo `doc.md` serve como o documento de arquitetura e design do projeto, contudo, para fins de demonstração neste case técnico, disponibilizamos exemplos descritivos integrados para ilustrar como os metadados são documentados.
-
-### Modelagem Orientada a IA (AI-Ready Data & Databricks Genie)
-Como premissa fundamental de design, as tabelas finais da camada Gold foram totalmente projetadas e otimizadas para consumo direto do **Databricks AI/BI Genie** (nossa ferramenta de análise conversacional de dados). Isso permite que usuários de negócio realizem perguntas em linguagem natural (Natural Language) diretamente para os dados e recebam respostas imediatas. A engenharia do modelo de dados adotou as seguintes diretrizes para garantir essa prontidão para IA (AI-Ready):
-*   **Semântica Autoexplicativa:** Nomes de colunas e tabelas intuitivos que dispensam traduções complexas ou decodificações por parte do modelo de linguagem.
-*   **Metadados Ricos (Rich Meta):** Inserção de descrições detalhadas e comentários ricos diretamente no catálogo de dados (Data Catalog) para cada tabela e coluna.
-*   **Estrutura Relacional Declarada:** Definição explícita de restrições de chaves primárias (Primary Keys) e chaves estrangeiras (Foreign Keys) na camada Gold, servindo de contexto contextual indispensável para a inteligência artificial interpretar os relacionamentos do negócio.
-
----
-
-## 4. Destaques Arquiteturais & Otimizações de Custo Comprovadas
-
-> [!TIP]
-> **Eficiência em Orquestração: Arquitetura Orientada a Eventos (ADF & Databricks)**
-> 
-> A integração padrão de mercado onde o Azure Data Factory (ADF) aguarda ativamente a finalização de jobs no Databricks gera altos custos de Unidades de Integração de Dados (Data Integration Units - DIUs).
-> 
-> **A Solução:** Ao configurar o ADF para disparar uma chamada de API assíncrona para o notebook da pasta `5_Workflow` e liberar a execução local da pipeline imediatamente, as ferramentas operam de forma independente. Cada ferramenta atua sob sua própria responsabilidade arquitetural, **reduzindo os custos de processamento de dados do ADF entre 27% e 90%** (variando de acordo com o volume de dados e o tempo de execução do job no cluster).
-> 
-> [Veja o post com a explicação técnica no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7084565386251112449/)
-
-> [!IMPORTANT]
-> **Monitoração Proativa e Operações Eficientes**
-> 
-> A implementação da camada `6_Webhook` elimina a necessidade de manter analistas dedicados monitorando consoles de agendamento (schedulers) 24/7. Os alertas automáticos de quebra de contrato de dados (data contract breaches) ou falhas críticas são enviados diretamente aos canais do Teams/Slack para rápida atuação.
-
----
-
-## 5. Portfólio de Casos Reais de Sucesso (FinOps & Performance Cases)
-
-Abaixo estão detalhados os resultados práticos obtidos com a aplicação desta mesma arquitetura e de metodologias avançadas de FinOps no ecossistema de dados, servindo de base de conhecimento para o ambiente corporativo:
-
-1.  **FinOps e Automação no Databricks (Redução de 45.5%):**
-    Implementação de rotinas automatizadas e gerenciamento inteligente de clusters na zona de entrega (Delivery Zone), otimizando o gasto computacional de processamento de big data.
-    *   [Acesse o Artigo Completo no LinkedIn](https://www.linkedin.com/pulse/automa%C3%A7%C3%A3o-e-finops-economia-de-455-databricks-um-caso-wellikiandre-smopf/)
-2.  **Redução de 94% em Custos de Operações de Leitura/Escrita (Data Lake):**
-    Otimização de rotinas de leitura e gravação em disco através do ajuste do tamanho de partição de arquivos, prevenção do problema de arquivos pequenos (Small File Problem) e eliminação de leituras desnecessárias de dados.
-    *   [Acesse o Artigo Completo no LinkedIn](https://www.linkedin.com/pulse/redu%C3%A7%C3%A3o-de-custo-data-lake-operation-readwhite-wellikiandre/?trackingId=wUfs%2BfJERQa%2B%2B7RzHkscfA%3D%3D)
-3.  **Otimização de Carga no Power BI (De 21 minutos e 57 GiB para < 1 minuto e 1.2 GiB):**
-    Aceleração dramática na atualização de painéis corporativos aplicando agregação antecipada de dados na camada Gold (Star Schema), reduzindo o volume trafegado (network shuffle) e o consumo de memória RAM do Gateway de dados.
-    *   [Acesse a Publicação com Detalhes Técnicos](https://www.linkedin.com/posts/wellikiandre_como-reduzi-57gib-de-dados-por-ciclo-de-activity-7211750188825124864-YCE2?utm_source=share&utm_medium=member_desktop&rcm=ACoAACVzuN0B2yWsXoXg_wqXapwdWiXb-zH4_4U)
-4.  **Monitoramento Automatizado de Pipelines com Assistente Webhook:**
-    Arquitetura de notificação integrada aos cadernos da camada `6_Webhook` para alertas automáticos de jobs, eliminando a verificação manual constante.
-    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7110645408216813568/)
-5.  **Ajustes Finos de Performance em Processamento de Fluxo Contínuo (Streaming Tuning):**
-    Melhorias aplicadas a fluxos estruturados (Structured Streaming) para estabilização de vazão de dados (throughput) e redução de latência no Databricks.
-    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7218722493941878784/)
-6.  **Ingestão de IoT Near Real-Time Otimizada computacionalmente:**
-    Consumo resiliente de sensores com o menor consumo computacional necessário através da otimização de gatilhos (triggers) de processamento de stream do Spark.
-    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7023771647023144960/?updateEntityUrn=urn%3Ali%3Afs_feedUpdate%3A%28V2%2Curn%3Ali%3Aactivity%3A7023771647023144960%29)
-
----
-
-## 6. Detalhes de Implementação do Case (Case Implementation)
-
-Como parte da entrega do teste técnico de engenharia de dados (data engineering test), foram criadas as camadas Silver e Gold e as respectivas pastas de documentação diretamente no repositório:
-
-### Camada Silver (Cleansed Delta) — [src/3_Silver/](file:///home/wellikiandre/academy/dir/case_databricks/src/3_Silver/)
-Nesta camada, limpamos e padronizamos os dados brutos vindos da Bronze de forma concorrente:
-*   **[000-run_job_case_silver.ipynb](file:///home/wellikiandre/academy/dir/case_databricks/src/3_Silver/000-run_job_case_silver.ipynb)**: Notebook de execução paralela (parallel execution) de cargas.
-*   **Notebooks `001` a `009`**: Processam individualmente cada fonte (pedidos, clientes, canais, logística, vendedores, etc.), aplicando conversão de tipos (casting), deduplicação (deduplication) e regras de qualidade (quality constraints).
-
-### Camada Gold (Curated Delta) — [src/4_Gold/](file:///home/wellikiandre/academy/dir/case_databricks/src/4_Gold/)
-Estruturada sob o conceito de **esquema estrela (star schema)** para suprir as demandas de BI e habilitar consultas em linguagem natural (natural language queries) via **Databricks Genie AI**:
-*   **[000-run_job_case_gold.ipynb](file:///home/wellikiandre/academy/dir/case_databricks/src/4_Gold/000-run_job_case_gold.ipynb)**: Orquestrador da Gold.
-*   **Tabelas de Dimensão (`dim_*`)**:
-    *   `dim_clientes`: Unificação de clientes CRM e dados geográficos do legado.
-    *   `dim_produtos`: Dump de produtos estruturado com categorias limpas.
-    *   `dim_vendedores`: Cadastro de vendedores enriquecido com o canal de vendas comercial.
-    *   `dim_tempo`: Calendário gerado dinamicamente para agrupamentos de ano, mês e dia da semana.
-*   **Tabelas Fato (`fact_*`)**:
-    *   `fact_pedidos_itens`: Granularidade de item do pedido, calculando receita líquida direta e excluindo pedidos cancelados.
-    *   `fact_entregas`: Status de envios logísticos, frete e indicador de atraso (late delivery flag).
-    *   `fact_ocorrencias`: Monitoramento de chamados abertos por clientes associados aos pedidos.
-
-#### Diagrama de Relacionamento Gold (Entity-Relationship Diagram)
+### Diagrama de Relacionamento de Entidades (Entity-Relationship Diagram)
 
 ```mermaid
 classDiagram
@@ -226,7 +91,140 @@ classDiagram
     fact_ocorrencias --> dim_tempo : sk_tempo_ocorrencia
 ```
 
+### Especificação Conceitual das Entidades Gold
 
-### Documentações de Entrega (Artifacts)
-*   **[Documentação Técnica](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md)**: Detalhamento de cada pipeline de limpeza, dicionário de dados da Gold, chaves substitutas (surrogate keys) e justificativas técnicas (como Liquid Clustering e FinOps).
-*   **[Resumo Executivo Técnico](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md)**: Apresentação gerencial (executive report) contendo diagrama de relacionamentos relacionais (Mermaid) e mapeamento do valor gerado para o negócio.
+*   **dim_clientes**: Consolida o cadastro unificado de clientes. Associa as informações geográficas (UF) vindas do sistema legado para gerar a região de vendas, aplicando chaves substitutas (surrogate keys) hash SHA-256 no identificador numérico de origem.
+*   **dim_produtos**: Estrutura a hierarquia comercial de produtos (categoria, subcategoria e família), convertendo preços para decimal e tratando registros ausentes de categoria como "Outros".
+*   **dim_vendedores**: Integra o cadastro de vendedores e associa seus respectivos canais de vendas (comercial canais).
+*   **dim_tempo**: Tabela calendário dinâmica (2023 a 2026) contendo atributos de agrupamento temporal (ano, mês, dia, trimestre, dia da semana).
+*   **fact_pedidos_itens**: Contém as transações de vendas no nível mais detalhado (item do pedido). Calcula a receita bruta e a receita líquida (zerando o valor de itens cancelados) para otimizar relatórios financeiros sem necessidade de processamento adicional no dashboard.
+*   **fact_entregas**: Monitora o desempenho da logística de transporte, calculando o tempo de transporte (transit time) em dias e gerando o indicador binário `flag_atrasado` com base no status da remessa.
+*   **fact_ocorrencias**: Registra os incidentes de pós-venda, associando os tickets de atendimento por severidade e status diretamente aos clientes e pedidos.
+
+---
+
+## 2. Ingestão e Processamento - Camadas Bronze e Silver
+
+O processamento segue a arquitetura de medalhão (Medallion Architecture) dividida em:
+
+### Landing para Bronze (Raw Replication)
+*   **Ingestão via Auto Loader**: Utilização do Auto Loader do Databricks com `cloudFiles` para ler em tempo real (streaming) ou lotes frequentes arquivos CSV, JSON e texto da landing zone.
+*   **Replicação Exata**: Armazenamento em tabelas Delta (Delta Tables) de forma idêntica à origem, acrescentando metadados de auditoria técnica como `rastreamento_source` (caminho físico do arquivo de entrada) e `ingestion_date_brasilia` (carimbo de data e hora ajustado para o fuso local).
+
+### Bronze para Silver (Cleaning & Quality Control)
+As transformações aplicadas garantem a qualidade e a padronização dos dados antes de sua agregação analítica:
+*   **Limpeza Cadastral**: Remoção de pontos, traços e barras de documentos de identificação (CPF/CNPJ) via expressões regulares (regex) e conversão de e-mails para caracteres minúsculos.
+*   **Casting de Tipos de Dados**: Conversão de strings de data/hora para TimestampType e DateType, e campos monetários/preços para DecimalType(10,2).
+*   **Deduplicação por Janela Temporal (Deduplication)**: Utilização da janela analítica do Spark (`Window.partitionBy().orderBy()`) para reter apenas o último estado de registros mutáveis (como status de pedidos, produtos atualizados e tickets de atendimento).
+
+---
+
+## 3. Destaques Arquiteturais e Otimizações de Custo (FinOps & Performance)
+
+*   **Uso de Liquid Clustering**: Em substituição ao particionamento tradicional (particionando fisicamente o lake em diretórios por data), a camada Gold utiliza Liquid Clustering (`CLUSTER BY`) nas tabelas Delta. Isso otimiza os planos de execução (query execution plans) do Spark ao realizar buscas filtradas por região, produto ou período e evita o problema de pequenos arquivos (small files problem).
+*   **Orquestração Assíncrona via APIs**: A arquitetura de workflow foi desacoplada de forma orientada a eventos. O orquestrador externo apenas dispara as chamadas de Job e libera o canal de processamento, em vez de reter unidades de integração ativas aguardando a finalização. Isso proporciona reduções de custos na nuvem de **27% a 90%** (dependendo do volume de dados).
+*   **Chaves de Fallback**: Caso ocorram chaves estrangeiras órfãs durante o enriquecimento de tabelas fato na Gold, o processo mapeia e resolve as chaves substitutas para registros de falha padrão (`-1` ou hash de "Não Identificado"), garantindo a integridade referencial sem descartar registros transacionais importantes.
+
+---
+
+## 4. Estrutura de Pastas do Projeto (Workspace Folder Structure)
+
+O design de pastas do workspace Databricks é desacoplado de nuvem física, permitindo a portabilidade a qualquer ambiente de nuvem pública (AWS, GCP ou Azure):
+
+![Diagrama de Arquitetura da Solução](arquitetura.png)
+
+| Pasta | Componente | Descrição Técnica e Objetivo de Engenharia |
+| :--- | :--- | :--- |
+| **`0_Config`** | Configurações e Inicialização | Centraliza o carregamento de dependências, bibliotecas, variáveis globais e parametrização dinâmica de ambientes (DEV, HML, PRD). |
+| **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato físico inicial com arquivos de origem brutos. |
+| **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados em tabelas Delta no formato de adição contínua (append-only) com metadados. |
+| **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos, deduplicação e alinhamento de esquemas. |
+| **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final baseada em Star Schema otimizada para o consumo de dashboards e IA. |
+| **`5_Workflow`** | Orquestração e Pipelines | Notebooks de automação de pipelines de ponta a ponta e integração com orquestradores. |
+| **`6_Webhook`** | Notificações e Alertas | Webhooks para o envio de status e erros das cargas de dados em tempo real para o Slack/Teams. |
+| **`7_Vacuum_Optimize`**| Manutenção e Performance | Automação das rotinas de VACUUM e OPTIMIZE para otimizar leitura e reduzir fragmentação. |
+| **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts focados na eficiência financeira e redução de desperdício em clusters. |
+| **`9_Governanca`** | Governança e Segurança | Notebooks dedicados ao mascaramento de dados (data masking) e conformidade (LGPD/GDPR). |
+
+![Arquitetura de Pasta](src.png)
+
+---
+
+## 5. Estrutura de Entregas - Notebooks e Códigos (Project Deliverables)
+
+Os notebooks de processamento e configurações criados estão organizados nas respectivas pastas:
+
+### Configurações de Ambiente — [src/0_Config/](file:///home/wellikiandre/academy/dir/case_databricks/src/0_Config/)
+*   `0-Init.ipynb`: Inicialização comum de rotinas.
+*   `1-Libs.ipynb`: Carregamento de dependências e bibliotecas Python.
+*   `2-Variable.ipynb`: Definição de caminhos de volumes e esquemas físicos do Unity Catalog.
+*   `3-Functions.ipynb`: Central de funções utilitárias globais (como `process_data`, `process_fact` e `optimize_tables`).
+*   `4-Config.ipynb`: Configurações de Spark Session e propriedades do cluster.
+
+### Pipelines da Camada Silver — [src/3_Silver/](file:///home/wellikiandre/academy/dir/case_databricks/src/3_Silver/)
+*   `000-run_job_case_silver.ipynb`: Executa de forma concorrente e paralela todas as cargas da Silver usando threads no Databricks.
+*   `001-atendimento_ocorrencias.ipynb`: Processa e limpa ocorrências de suporte pós-venda.
+*   `002-cadastro_produtos.ipynb`: Trata o dump JSON da API de produtos.
+*   `003-comercial_canais.ipynb`: Higieniza o cadastro de canais comerciais.
+*   `004-crm_clientes.ipynb`: Limpa e formata CPFs/CNPJs e cadastros do CRM de clientes.
+*   `005-erp_pedidos_cabecalho.ipynb`: Padroniza status e datas de pedidos de vendas.
+*   `006-erp_pedidos_itens.ipynb`: Estrutura detalhes de quantidade e valor dos itens comprados.
+*   `007-legado_regioes.ipynb`: Normaliza a tabela geográfica de regiões baseada no delimitador pipe.
+*   `008-logistica_entregas.ipynb`: Limpa datas logísticas, frete e transportadoras.
+*   `009-vendedores.ipynb`: Padroniza e-mails e nomes de cadastro de vendedores.
+
+### Pipelines da Camada Gold — [src/4_Gold/](file:///home/wellikiandre/academy/dir/case_databricks/src/4_Gold/)
+*   `000-run_job_case_gold.ipynb`: Orquestra as dimensões da Gold em paralelo e as fatos sequencialmente.
+*   `dim_clientes.ipynb`: Monta a dimensão clientes cruzando dados geográficos legados.
+*   `dim_produtos.ipynb`: Consolida produtos, preços e categorias.
+*   `dim_vendedores.ipynb`: Cria o mapeamento de vendedores e canais comerciais.
+*   `dim_tempo.ipynb`: Tabela calendário dinâmica de suporte temporal.
+*   `fact_pedidos_itens.ipynb`: Une cabeçalho/itens de pedidos e calcula receita líquida da transação.
+*   `fact_entregas`: Consolida métricas de performance logística de transporte.
+*   `fact_ocorrencias`: Vincula tickets de suporte abertos a seus respectivos clientes e pedidos.
+
+### Orquestração de Jobs — [src/5_Workflow/](file:///home/wellikiandre/academy/dir/case_databricks/src/5_Workflow/)
+*   `carga_case.ipynb`: Ponto de entrada do pipeline unificado.
+*   `carga_case.yaml`: Especificação completa do Databricks Workflow Job em formato YAML para deploy via Asset Bundles.
+
+---
+
+## 6. Instruções de Implantação e Execução (Deployment Guide)
+
+Como os códigos foram desenvolvidos e testados no padrão do Databricks Repos integrado aos volumes do Unity Catalog:
+
+1.  Faça o commit e envie as alterações locais para a sua branch remota do GitHub:
+    ```bash
+    git push origin main
+    ```
+2.  No Databricks Workspace, acesse o módulo **Repos** (ou **Git Folders**).
+3.  Selecione o repositório `case_databricks` e realize o **Pull** para sincronizar as pastas de notebooks em seu workspace.
+4.  Certifique-se de que os volumes declarados no notebook `2-Variable.ipynb` existam no Unity Catalog do seu cluster.
+5.  Execute o orquestrador geral `/src/5_Workflow/carga_case.ipynb` ou os orquestradores específicos de cada camada:
+    *   `/src/3_Silver/000-run_job_case_silver.ipynb`
+    *   `/src/4_Gold/000-run_job_case_gold.ipynb`
+
+---
+
+## 7. Portfólio de Casos Reais de Sucesso (FinOps & Performance Cases)
+
+Abaixo estão detalhados os resultados práticos obtidos com a aplicação desta mesma arquitetura e de metodologias avançadas de FinOps no ecossistema de dados, servindo de base de conhecimento para o ambiente corporativo:
+
+1.  **FinOps e Automação no Databricks (Redução de 45.5%):**
+    Implementação de rotinas automatizadas e gerenciamento inteligente de clusters na zona de entrega (Delivery Zone), otimizando o gasto computacional de processamento de big data.
+    *   [Acesse o Artigo Completo no LinkedIn](https://www.linkedin.com/pulse/automa%C3%A7%C3%A3o-e-finops-economia-de-455-databricks-um-caso-wellikiandre-smopf/)
+2.  **Redução de 94% em Custos de Operações de Leitura/Escrita (Data Lake):**
+    Otimização de rotinas de leitura e gravação em disco através do ajuste do tamanho de partição de arquivos, prevenção do problema de arquivos pequenos (Small File Problem) e eliminação de leituras desnecessárias de dados.
+    *   [Acesse o Artigo Completo no LinkedIn](https://www.linkedin.com/pulse/redu%C3%A7%C3%A3o-de-custo-data-lake-operation-readwhite-wellikiandre/?trackingId=wUfs%2BfJERQa%2B%2B7RzHkscfA%3D%3D)
+3.  **Otimização de Carga no Power BI (De 21 minutos e 57 GiB para < 1 minuto e 1.2 GiB):**
+    Aceleração dramática na atualização de painéis corporativos aplicando agregação antecipada de dados na camada Gold (Star Schema), reduzindo o volume trafegado (network shuffle) e o consumo de memória RAM do Gateway de dados.
+    *   [Acesse a Publicação com Detalhes Técnicos](https://www.linkedin.com/posts/wellikiandre_como-reduzi-57gib-de-dados-por-ciclo-de-activity-7211750188825124864-YCE2?utm_source=share&utm_medium=member_desktop&rcm=ACoAACVzuN0B2yWsXoXg_wqXapwdWiXb-zH4_4U)
+4.  **Monitoramento Automatizado de Pipelines com Assistente Webhook:**
+    Arquitetura de notificação integrada aos cadernos da camada `6_Webhook` para alertas automáticos de jobs, eliminando a verificação manual constante.
+    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7110645408216813568/)
+5.  **Ajustes Finos de Performance em Processamento de Fluxo Contínuo (Streaming Tuning):**
+    Melhorias aplicadas a fluxos estruturados (Structured Streaming) para estabilização de vazão de dados (throughput) e redução de latência no Databricks.
+    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7218722493941878784/)
+6.  **Ingestão de IoT Near Real-Time Otimizada computacionalmente:**
+    Consumo resiliente de sensores com o menor consumo computacional necessário através da otimização de gatilhos (triggers) de processamento de stream do Spark.
+    *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7023771647023144960/?updateEntityUrn=urn%3Ali%3Afs_feedUpdate%3A%28V2%2Curn%3Ali%3Aactivity%3A7023771647023144960%29)
