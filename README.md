@@ -110,3 +110,97 @@ Abaixo estão detalhados os resultados práticos obtidos com a aplicação desta
 6.  **Ingestão de IoT Near Real-Time Otimizada computacionalmente:**
     Consumo resiliente de sensores com o menor consumo computacional necessário através da otimização de gatilhos (triggers) de processamento de stream do Spark.
     *   [Acesse a Publicação no LinkedIn](https://www.linkedin.com/feed/update/urn:li:activity:7023771647023144960/?updateEntityUrn=urn%3Ali%3Afs_feedUpdate%3A%28V2%2Curn%3Ali%3Aactivity%3A7023771647023144960%29)
+
+---
+
+## 6. Detalhes de Implementação do Case (Case Implementation)
+
+Como parte da entrega do teste técnico de engenharia de dados (data engineering test), foram criadas as camadas Silver e Gold e as respectivas pastas de documentação diretamente no repositório:
+
+### Camada Silver (Cleansed Delta) — [src/3_Silver/](file:///home/wellikiandre/academy/dir/case_databricks/src/3_Silver/)
+Nesta camada, limpamos e padronizamos os dados brutos vindos da Bronze de forma concorrente:
+*   **[000-run_job_case_silver.ipynb](file:///home/wellikiandre/academy/dir/case_databricks/src/3_Silver/000-run_job_case_silver.ipynb)**: Notebook de execução paralela (parallel execution) de cargas.
+*   **Notebooks `001` a `009`**: Processam individualmente cada fonte (pedidos, clientes, canais, logística, vendedores, etc.), aplicando conversão de tipos (casting), deduplicação (deduplication) e regras de qualidade (quality constraints).
+
+### Camada Gold (Curated Delta) — [src/4_Gold/](file:///home/wellikiandre/academy/dir/case_databricks/src/4_Gold/)
+Estruturada sob o conceito de **esquema estrela (star schema)** para suprir as demandas de BI e habilitar consultas em linguagem natural (natural language queries) via **Databricks Genie AI**:
+*   **[000-run_job_case_gold.ipynb](file:///home/wellikiandre/academy/dir/case_databricks/src/4_Gold/000-run_job_case_gold.ipynb)**: Orquestrador da Gold.
+*   **Tabelas de Dimensão (`dim_*`)**:
+    *   `dim_clientes`: Unificação de clientes CRM e dados geográficos do legado.
+    *   `dim_produtos`: Dump de produtos estruturado com categorias limpas.
+    *   `dim_vendedores`: Cadastro de vendedores enriquecido com o canal de vendas comercial.
+    *   `dim_tempo`: Calendário gerado dinamicamente para agrupamentos de ano, mês e dia da semana.
+*   **Tabelas Fato (`fact_*`)**:
+    *   `fact_pedidos_itens`: Granularidade de item do pedido, calculando receita líquida direta e excluindo pedidos cancelados.
+    *   `fact_entregas`: Status de envios logísticos, frete e indicador de atraso (late delivery flag).
+    *   `fact_ocorrencias`: Monitoramento de chamados abertos por clientes associados aos pedidos.
+
+#### Diagrama de Relacionamento Gold (Entity-Relationship Diagram)
+
+```mermaid
+classDiagram
+    class dim_clientes {
+        +sk_cliente
+        +nome_cliente
+        +documento_cliente
+        +regiao_cliente
+    }
+    class dim_produtos {
+        +sk_produto
+        +nome_produto
+        +categoria_produto
+    }
+    class dim_vendedores {
+        +sk_vendedor
+        +nome_vendedor
+        +nome_canal
+    }
+    class dim_tempo {
+        +sk_tempo
+        +data
+        +ano
+        +mes
+    }
+    class fact_pedidos_itens {
+        +id_fato_item_pedido
+        +id_pedido
+        *sk_cliente
+        *sk_produto
+        *sk_vendedor
+        *sk_tempo
+        +quantidade
+        +preco_unitario
+        +valor_bruto
+        +valor_liquido
+    }
+    class fact_entregas {
+        +id_fato_entrega
+        *sk_cliente
+        *sk_tempo_envio
+        *sk_tempo_entrega
+        +custo_frete
+        +dias_transporte
+        +flag_atrasado
+    }
+    class fact_ocorrencias {
+        +id_fato_ticket
+        *sk_cliente
+        *sk_tempo_ocorrencia
+        +tipo_evento
+        +severidade
+        +status_ticket
+    }
+    fact_pedidos_itens --> dim_clientes : sk_cliente
+    fact_pedidos_itens --> dim_produtos : sk_produto
+    fact_pedidos_itens --> dim_vendedores : sk_vendedor
+    fact_pedidos_itens --> dim_tempo : sk_tempo
+    fact_entregas --> dim_clientes : sk_cliente
+    fact_entregas --> dim_tempo : sk_tempo_envio
+    fact_ocorrencias --> dim_clientes : sk_cliente
+    fact_ocorrencias --> dim_tempo : sk_tempo_ocorrencia
+```
+
+
+### Documentações de Entrega (Artifacts)
+*   **[Documentação Técnica](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md)**: Detalhamento de cada pipeline de limpeza, dicionário de dados da Gold, chaves substitutas (surrogate keys) e justificativas técnicas (como Liquid Clustering e FinOps).
+*   **[Resumo Executivo Técnico](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md)**: Apresentação gerencial (executive report) contendo diagrama de relacionamentos relacionais (Mermaid) e mapeamento do valor gerado para o negócio.
