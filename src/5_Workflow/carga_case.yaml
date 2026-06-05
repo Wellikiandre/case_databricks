@@ -1,0 +1,53 @@
+resources:
+  jobs:
+    carga_case:
+      name: carga_case
+      tasks:
+        - task_key: 000-run_job_case_bronze
+          notebook_task:
+            notebook_path: src/2_Bronze/case/000-run_job_case_bronze
+            source: GIT
+          email_notifications:
+            on_start:
+              - wellikiandre@hotmial.com
+            on_success:
+              - wellikiandre@hotmial.com
+            on_failure:
+              - wellikiandre@hotmial.com
+          environment_key: case_databricks_environment
+
+        - task_key: 000-run_job_case_silver
+          depends_on:
+            - task_key: 000-run_job_case_bronze
+          notebook_task:
+            notebook_path: src/3_Silver/000-run_job_case_silver
+            source: GIT
+          email_notifications:
+            on_failure:
+              - wellikiandre@hotmial.com
+          environment_key: case_databricks_environment
+
+        - task_key: 000-run_job_case_gold
+          depends_on:
+            - task_key: 000-run_job_case_silver
+          notebook_task:
+            notebook_path: src/4_Gold/000-run_job_case_gold
+            source: GIT
+          email_notifications:
+            on_success:
+              - wellikiandre@hotmial.com
+            on_failure:
+              - wellikiandre@hotmial.com
+          environment_key: case_databricks_environment
+
+      git_source:
+        git_url: https://github.com/Wellikiandre/case_databricks
+        git_provider: gitHub
+        git_branch: main
+      queue:
+        enabled: true
+      environments:
+        - environment_key: case_databricks_environment
+          spec:
+            environment_version: "5"
+      performance_target: PERFORMANCE_OPTIMIZED
