@@ -53,7 +53,7 @@ A estrutura abaixo representa o padrão arquitetural de pastas adotado em grande
  **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts especializados na análise de uso de clusters, eficiência de consultas e redução de desperdício financeiro na nuvem. |
  **`9_Governanca`** | Governança & Segurança | Cadernos dedicados ao mascaramento de dados sensíveis (data masking), controle de integridade e aderência às regras de conformidade (LGPD/GDPR). |
 
-![Arquitetura de Pasta] Arquitetura_Pasta_SRC.png
+![Arquitetura de Pasta](src.png)
 ---
 
 ## 3. Governança Moderna & Prontidão para IA (Unity Catalog & Genie AI)
