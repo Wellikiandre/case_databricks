@@ -1,4 +1,29 @@
-# Arquitetura Corporativa de Dados & Boas Práticas (Databricks Reference Architecture)
+# 🚀 Plataforma Corporativa de Dados & Modelagem Dimensional no Databricks
+## Arquitetura de Referência Moderna (Databricks Reference Architecture)
+
+[![Databricks](https://img.shields.io/badge/Databricks-Community_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
+[![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.5-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
+[![Delta Lake](https://img.shields.io/badge/Delta_Lake-Medallion-00BFFF?logo=delta&logoColor=white)](https://delta.io/)
+
+---
+
+### 💡 Venda Técnica da Solução (Solution Pitch)
+
+Esta plataforma transforma fontes brutas e heterogêneas de dados em um ecossistema analítico integrado, governado e **pronto para IA (AI-Ready)**. 
+
+Ao adotar práticas modernas de **FinOps** (como orquestração assíncrona, Liquid Clustering e rotinas Delta automatizadas), reduzimos os custos de processamento do Data Factory na nuvem entre **27% e 90%**, eliminando problemas de arquivos pequenos (small files) e garantindo uma base de altíssimo desempenho para o **Databricks Genie AI** e dashboards analíticos.
+
+---
+
+### 📖 Menu de Navegação Rápida (Quick Navigation)
+
+Para facilitar a avaliação da solução, acesse diretamente os documentos de suporte ao caso técnico:
+
+*   📂 **[Resumo Executivo (Executive Summary)](file:///home/wellikiandre/academy/dir/case_databricks/docs/executive_summary.md)**: Visão gerencial, modelo de dados conceitual (Mermaid) e ganhos de negócio da plataforma.
+*   🛠 **[Documentação Técnica (Technical Documentation)](file:///home/wellikiandre/academy/dir/case_databricks/docs/technical_documentation.md)**: Detalhes sobre cada pipeline de limpeza, dicionário de dados da Gold, chaves substitutas (surrogate keys) e performance.
+*   ⚙️ **[Orquestração do Pipeline (Databricks Workflow YAML)](file:///home/wellikiandre/academy/dir/case_databricks/src/5_Workflow/carga_case.yaml)**: Especificação completa em formato YAML para deploy automático via bundles.
+
+---
 
 > [!IMPORTANT]
 > **Premissa de Entrega & Posicionamento Profissional**
@@ -10,6 +35,7 @@
 Este documento detalha o guia de arquitetura de referência (Reference Architecture Guide) projetado para o ambiente corporativo do **Databricks**. Esta arquitetura foi consolidada sob os princípios de alta escalabilidade (scalability), governança estrita de dados (data governance) e otimização financeira (FinOps), sendo testada com sucesso em grandes corporações do mercado financeiro e de tecnologia.
 
 ---
+
 
 ## 1. Diretrizes Iniciais de Acesso e Ingestão
 
