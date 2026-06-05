@@ -1,4 +1,4 @@
-# Plataforma Corporativa de Dados e Modelagem Dimensional no Databricks
+# Modern Data Architecture
 ## Guia de Arquitetura de Referência e Especificação do Case Técnico
 
 [![Databricks](https://img.shields.io/badge/Databricks-Free_Edition-FF3600?logo=databricks&logoColor=white)](https://community.cloud.databricks.com/)
