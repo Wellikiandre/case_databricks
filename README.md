@@ -36,7 +36,30 @@ Para navegar diretamente para os documentos detalhados, clique nos botões abaix
 
 ---
 
-## 1. Arquitetura do Modelo Dimensional - Camada Gold (Gold Dimensional Model)
+## 1. Estrutura de Pastas do Projeto (Workspace Folder Structure)
+
+O design de pastas do workspace Databricks é desacoplado de nuvem física, permitindo a portabilidade a qualquer ambiente de nuvem pública (AWS, GCP ou Azure):
+
+![Diagrama de Arquitetura da Solução](arquitetura.png)
+
+| Pasta | Componente | Descrição Técnica e Objetivo de Engenharia |
+| :--- | :--- | :--- |
+| **`0_Config`** | Configurações e Inicialização | Centraliza o carregamento de dependências, bibliotecas, variáveis globais e parametrização dinâmica de ambientes (DEV, HML, PRD). |
+| **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato físico inicial com arquivos de origem brutos. |
+| **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados em tabelas Delta no formato de adição contínua (append-only) com metadados. |
+| **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos, deduplicação e alinhamento de esquemas. |
+| **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final baseada em Star Schema otimizada para o consumo de dashboards e IA. |
+| **`5_Workflow`** | Orquestração e Pipelines | Notebooks de automação de pipelines de ponta a ponta e integração com orquestradores. |
+| **`6_Webhook`** | Notificações e Alertas | Webhooks para o envio de status e erros das cargas de dados em tempo real para o Slack/Teams. |
+| **`7_Vacuum_Optimize`**| Manutenção e Performance | Automação das rotinas de VACUUM e OPTIMIZE para otimizar leitura e reduzir fragmentação. |
+| **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts focados na eficiência financeira e redução de desperdício em clusters. |
+| **`9_Governanca`** | Governança e Segurança | Notebooks dedicados ao mascaramento de dados (data masking) e conformidade (LGPD/GDPR). |
+
+![Arquitetura de Pasta](src.png)
+
+---
+
+## 2. Arquitetura do Modelo Dimensional - Camada Gold (Gold Dimensional Model)
 
 A camada Gold (Curated/BI) foi estruturada sob o conceito de **esquema estrela (star schema)** para facilitar a exploração analítica por ferramentas de Business Intelligence (BI) e permitir a integração natural de consultas em linguagem natural (natural language queries) através do **Databricks AI/BI Genie**.
 
@@ -182,7 +205,7 @@ Monitoramento de pós-venda e satisfação do cliente.
 
 ---
 
-## 2. Ingestão e Processamento - Camadas Bronze e Silver
+## 3. Ingestão e Processamento - Camadas Bronze e Silver
 
 O processamento segue a arquitetura de medalhão (Medallion Architecture) dividida em:
 
@@ -218,34 +241,11 @@ As transformações aplicadas garantem a qualidade e a padronização dos dados 
 
 ---
 
-## 3. Destaques Arquiteturais e Otimizações de Custo (FinOps & Performance)
+## 4. Destaques Arquiteturais e Otimizações de Custo (FinOps & Performance)
 
 *   **Uso de Liquid Clustering**: Em substituição ao particionamento tradicional (particionando fisicamente o lake em diretórios por data), a camada Gold utiliza Liquid Clustering (`CLUSTER BY`) nas tabelas Delta. Isso otimiza os planos de execução (query execution plans) do Spark ao realizar buscas filtradas por região, produto ou período e evita o problema de pequenos arquivos (small files problem).
 *   **Orquestração Assíncrona via APIs**: A arquitetura de workflow foi desacoplada de forma orientada a eventos. O orquestrador externo apenas dispara as chamadas de Job e libera o canal de processamento, em vez de reter unidades de integração ativas aguardando a finalização. Isso proporciona reduções de custos na nuvem de **27% a 90%** (dependendo do volume de dados).
 *   **Chaves de Fallback**: Caso ocorram chaves estrangeiras órfãs durante o enriquecimento de tabelas fato na Gold, o processo mapeia e resolve as chaves substitutas para registros de falha padrão (`-1` ou hash de "Não Identificado"), garantindo a integridade referencial sem descartar registros transacionais importantes.
-
----
-
-## 4. Estrutura de Pastas do Projeto (Workspace Folder Structure)
-
-O design de pastas do workspace Databricks é desacoplado de nuvem física, permitindo a portabilidade a qualquer ambiente de nuvem pública (AWS, GCP ou Azure):
-
-![Diagrama de Arquitetura da Solução](arquitetura.png)
-
-| Pasta | Componente | Descrição Técnica e Objetivo de Engenharia |
-| :--- | :--- | :--- |
-| **`0_Config`** | Configurações e Inicialização | Centraliza o carregamento de dependências, bibliotecas, variáveis globais e parametrização dinâmica de ambientes (DEV, HML, PRD). |
-| **`1_Landing`** | Entrada de Dados (Landing) | Ponto de contato físico inicial com arquivos de origem brutos. |
-| **`2_Bronze`** | Camada Bronze (Raw Delta) | Replicação exata dos dados em tabelas Delta no formato de adição contínua (append-only) com metadados. |
-| **`3_Silver`** | Camada Silver (Cleansed Delta) | Aplicação de regras de qualidade, conversão de tipos, deduplicação e alinhamento de esquemas. |
-| **`4_Gold`** | Camada Gold (Curated/BI) | Modelagem analítica final baseada em Star Schema otimizada para o consumo de dashboards e IA. |
-| **`5_Workflow`** | Orquestração e Pipelines | Notebooks de automação de pipelines de ponta a ponta e integração com orquestradores. |
-| **`6_Webhook`** | Notificações e Alertas | Webhooks para o envio de status e erros das cargas de dados em tempo real para o Slack/Teams. |
-| **`7_Vacuum_Optimize`**| Manutenção e Performance | Automação das rotinas de VACUUM e OPTIMIZE para otimizar leitura e reduzir fragmentação. |
-| **`8_FinOps`** | Finanças na Nuvem (FinOps) | Scripts focados na eficiência financeira e redução de desperdício em clusters. |
-| **`9_Governanca`** | Governança e Segurança | Notebooks dedicados ao mascaramento de dados (data masking) e conformidade (LGPD/GDPR). |
-
-![Arquitetura de Pasta](src.png)
 
 ---
 
