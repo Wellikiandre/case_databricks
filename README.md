@@ -36,9 +36,9 @@ Para navegar diretamente para os documentos detalhados, clique nos botões abaix
 
 ---
 
-## 1. Estrutura de Pastas do Projeto (Workspace Folder Structure)
+## 1. Arquitetura do Projeto 
 
-O design de pastas do workspace Databricks é desacoplado de nuvem física, permitindo a portabilidade a qualquer ambiente de nuvem pública (AWS, GCP ou Azure):
+A arquitetura do projeto foi desenvolvida visando a portabilidade a qualquer ambiente de nuvem pública (AWS, GCP ou Azure):
 
 ![Diagrama de Arquitetura da Solução](arquitetura.png)
 
